@@ -4,20 +4,34 @@
   become: true
   pre_tasks:
 
-  - name: install updates (AlmaLinux)
+  - name: update repo cache (AlmaLinux)
     tags: always
     dnf:
-      update_only: yes
       update_cache: yes
+    changed_when: false  
     when: ansible_distribution == "AlmaLinux" 
 
-  - name: install updates (Ubuntu)
+  - name: update repo cache (Ubuntu)
     tags: always
     apt:
-      upgrade: dist
       update_cache: yes
+    changed_when: false
     when: ansible_distribution == "Ubuntu"  
 
+
+- hosts: all
+  become: true
+  tasks: 
+
+ 
+  - name: add ssh key for wzpoplaski
+    tags: always
+    authorized_key:
+      user: wzpoplaski
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAP6I+Q16GEsMzp/d6sM2l/aOnL84xLtScwoYt6WJQF7 ansible"
+
+ 
+       
 - hosts: workstations
   become: true
   tasks:
@@ -74,7 +88,7 @@
     lineinfile: 
       path: /etc/httpd/conf/httpd.conf
       regexp: '^ServerAdmin'
-      line: ServerAdmin somebody@somewhere.net
+      line: ServerAdmin wzpoplaski@startmail.com
     when: ansible_distribution == "AlmaLinux"
     register: httpd
 

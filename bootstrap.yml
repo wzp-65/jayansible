@@ -1,0 +1,48 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: install updates (AlmaLinux)
+    tags: always
+    dnf:
+      update_only: yes
+      update_cache: yes
+    when: ansible_distribution == "AlmaLinux" 
+
+  - name: install updates (Ubuntu)
+    tags: always
+    apt:
+      upgrade: dist
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"  
+
+
+- hosts: all
+  become: true
+  tasks: 
+
+  - name: create a user 
+    tags: always
+    user:
+      name: wzpoplaski
+      groups: root
+
+  - name: add ssh key for wzpoplaski
+    tags: always
+    authorized_key:
+      user: wzpoplaski
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAP6I+Q16GEsMzp/d6sM2l/aOnL84xLtScwoYt6WJQF7 ansible"
+
+  - name: add sudoers file for wzpoplaski
+    tags: always
+    copy: 
+      src: sudoer_wzpoplaski
+      dest: /etc/sudoers.d/wzpoplaski
+      owner: root
+      group: root
+      mode: 0440
+   
+
+ 

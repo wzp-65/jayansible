@@ -4,13 +4,15 @@
   become: true
   pre_tasks:
 
-  - name: install updates (CentOS)
+  - name: install updates (AlmaLinux)
+    tags: always
     dnf:
       update_only: yes
       update_cache: yes
-    when: ansible_distribution == "CentOS" 
+    when: ansible_distribution == "AlmaLinux" 
 
-  - name: install updates (CentOS)
+  - name: install updates (Ubuntu)
+    tags: always
     apt:
       upgrade: dist
       update_cache: yes
@@ -20,9 +22,11 @@
   become: true
   tasks:
 
-    - name: install unzip
+    - name: install unzip & nmap
       package:
-        name: unzip
+        name: 
+          - unzip
+          - nmap 
 
     - name: install terraform
       unarchive:
@@ -40,40 +44,42 @@
 
 
   - name: install apache and php packagesfor Ubuntu
-    package:
+    tags: apache,apache2,ubuntu
+    apt:
       name: 
         - apache2
         - libapache2-mod-php
       state: latest
     when: ansible_distribution == "Ubuntu"
 
-  - name: install apache and php packages for CentOS
-    package:
+  - name: install apache and php packages for AlmaLinux
+    tags: apache,AlmaLinux,httpd
+    dnf: 
       name:
         - httpd
         - php
       state: latest
-    when: ansible_distribution == "CentOS"
+    when: ansible_distribution == "AlmaLinux"
 
-  - name: start httpd (CentOS)
-    tags: apache,centos,httpd
+  - name: start httpd (AlmaLinux)
+    tags: apache,AlmaLinux,httpd
     service:
       name: httpd
       state: started
       enabled: yes
-    when: ansible_distribution == "CentOS"
+    when: ansible_distribution == "AlmaLinux"
 
   - name: change e-mail address for admin
-    tags: apache,centos,httpd
+    tags: apache,AlmaLinux,httpd
     lineinfile: 
       path: /etc/httpd/conf/httpd.conf
       regexp: '^ServerAdmin'
       line: ServerAdmin somebody@somewhere.net
-    when: ansible_distribution == "CentOS"
+    when: ansible_distribution == "AlmaLinux"
     register: httpd
 
-  - name: restart httpd (CentOS)
-    tags: apache,centos,httpd
+  - name: restart httpd (AlmaLinux)
+    tags: apache,AlmaLinux,httpd
     service:
       name: httpd
       state: restarted
@@ -95,19 +101,22 @@
   become: true
   tasks:
 
-  - name: install mariadb package (CentOS)
+  - name: install mariadb package (AlmaLinux)
+    tags: AlmaLinux,db,mariadb
     dnf:
       name: mariadb
       state: latest
-    when: ansible_distribution == "CentOS"
+    when: ansible_distribution == "AlmaLinux"
 
   - name: install mariadb package (Ubuntu)
+    tags: db,mariadb,Ubuntu
     apt:
       name: mariadb-server
       state: latest
     when: ansible_distribution == "Ubuntu"   
 
   - name: install samba package
+    tags: samba
     package:
       name: samba
       state: latest  

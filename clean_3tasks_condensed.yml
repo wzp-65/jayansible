@@ -1,0 +1,30 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: update repository index for Ubuntu
+    apt:
+      update_cache: yes
+    when: ansible_distribution_version == "Ubuntu"
+
+  - name: install apache2 & PHP package for Ubuntu
+    apt:
+      name: 
+        - apache2
+        - libapache2-mod-php
+      state: latest
+
+
+  - name: update repository index for AlmaLinux
+    dnf:
+      update_cache: yes
+    when: ansible_distribution_version == "AlmaLinux"
+
+  - name: install apache2 & PHP package for AlmaLinux
+    dnf:
+      name: 
+        - httpd
+        - php
+      state: latest

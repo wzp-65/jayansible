@@ -1,0 +1,4 @@
+- name: add ssh key for wzpoplaski
+  authorized_key:
+    user: wzpoplaski
+    key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAP6I+Q16GEsMzp/d6sM2l/aOnL84xLtScwoYt6WJQF7 ansible"

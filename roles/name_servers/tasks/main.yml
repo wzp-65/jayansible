@@ -1,0 +1,6 @@
+- name: install BIND9
+  package:
+    name:
+      - bind9
+    state: latest
+  when: ansible_distribution == "Ubuntu"    

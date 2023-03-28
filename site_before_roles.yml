@@ -1,0 +1,148 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: update repo cache (AlmaLinux)
+    tags: always
+    dnf:
+      update_cache: yes
+    changed_when: false  
+    when: ansible_distribution == "AlmaLinux" 
+
+  - name: update repo cache (Ubuntu)
+    tags: always
+    apt:
+      update_cache: yes
+    changed_when: false
+    when: ansible_distribution == "Ubuntu"  
+
+
+- hosts: all
+  become: true
+  tasks: 
+
+ 
+  - name: add ssh key for wzpoplaski
+    tags: always
+    authorized_key:
+      user: wzpoplaski
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAP6I+Q16GEsMzp/d6sM2l/aOnL84xLtScwoYt6WJQF7 ansible"
+
+ 
+       
+- hosts: workstations
+  become: true
+  tasks:
+
+    - name: install unzip & nmap
+      package:
+        name: 
+          - unzip
+          - nmap 
+
+    - name: install terraform
+      unarchive:
+        src: https://releases.hashicorp.com/terraform/1.4.2/terraform_1.4.2_linux_arm64.zip
+        dest: /usr/local/bin
+        remote_src: yes
+        mode: 0755
+        owner: root
+        group: root      
+
+
+- hosts: web_servers
+  become: true 
+  tasks: 
+
+
+  - name: install apache and php packagesfor Ubuntu
+    tags: apache,apache2,ubuntu
+    apt:
+      name: 
+        - apache2
+        - libapache2-mod-php
+      state: latest
+    when: ansible_distribution == "Ubuntu"
+
+  - name: install apache and php packages for AlmaLinux
+    tags: apache,AlmaLinux,httpd
+    dnf: 
+      name:
+        - httpd
+        - php
+      state: latest
+    when: ansible_distribution == "AlmaLinux"
+
+  - name: start httpd (AlmaLinux)
+    tags: apache,AlmaLinux,httpd
+    service:
+      name: httpd
+      state: started
+      enabled: yes
+    when: ansible_distribution == "AlmaLinux"
+
+  - name: change e-mail address for admin
+    tags: apache,AlmaLinux,httpd
+    lineinfile: 
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin wzpoplaski@startmail.com
+    when: ansible_distribution == "AlmaLinux"
+    register: httpd
+
+  - name: restart httpd (AlmaLinux)
+    tags: apache,AlmaLinux,httpd
+    service:
+      name: httpd
+      state: restarted
+    when: httpd.changed
+
+
+  - name: copy default html file for site
+    tags: apache,apache2,httpd
+    copy:
+      src: default_site.html  
+      dest: /var/www/html/index.html  
+      owner: root
+      group: root
+      mode: 0644
+
+
+
+- hosts: db_servers
+  become: true
+  tasks:
+
+  - name: install mariadb package (AlmaLinux)
+    tags: AlmaLinux,db,mariadb
+    dnf:
+      name: mariadb
+      state: latest
+    when: ansible_distribution == "AlmaLinux"
+
+  - name: install mariadb package (Ubuntu)
+    tags: db,mariadb,Ubuntu
+    apt:
+      name: mariadb-server
+      state: latest
+    when: ansible_distribution == "Ubuntu"   
+
+  - name: install samba package
+    tags: samba
+    package:
+      name: samba
+      state: latest  
+
+- hosts: name_servers
+  become: true
+  tasks:
+
+  - name: install BIND9
+    package:
+      name:
+        - bind9
+      state: latest
+    when: ansible_distribution == "Ubuntu"    
+       
